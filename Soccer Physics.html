@@ -1,0 +1,489 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Soccer hysics</title>
+
+    <script src="phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <audio id="sound">
+        <source src="mabrok.mp3" type="audio/mp3">
+    </audio>
+    <script type="text/javascript">
+        var sound = document.getElementById("sound");
+        var game = new Phaser.Game(1000, 600, Phaser.canvas, '', { preload: preload, create: create, update: update, render : render });
+        var leg2;
+        var flag_1 = true;
+        var flag_2 = true;
+        var t_1, t_2;
+        var score1 = 0;
+        var score2 = 0;
+        var t2;
+        var player2;
+        var speed = 0;
+        var score = 0;
+        var time_1 = -0.003;
+        var time_2 = -0.003;
+        var ball;
+        var players;
+        var b;
+        var cursors;
+
+        function moverigth() {
+            i = 0;
+            i += index * 10;
+            if (index <= 3) {
+                var interval1 = setInterval(function () {
+                    player2.body.angularVelocity = 50;
+                    i += 10;
+                    console.log(i);
+                    if (i > 30) {
+                        clearInterval(interval1);
+                        moveleft();
+                    }
+                }, 700);
+            }
+            console.log("     " + index);
+            index++;
+        }
+        function moveleft() {
+            i = 50;
+            i -= index * 10;
+            if (index <= 3) {
+
+                var interval2 = setInterval(function () {
+                    player2.body.angularVelocity = -50;
+                    i -= 10;
+                    console.log(i);
+                    if (i < 10) {
+                        clearInterval(interval2);
+                        moverigth();
+                    }
+                }, 700);
+            }
+        }
+
+        function rotatePlayer1() {
+            if (player1.body.touching.down) { }
+            time_1 += 0.003;
+
+                player1.rotation = 0.5*(Math.sin(time_1 * 20) * Math.cos(time_1));
+                if (Math.cos(time_1) >= 0.001)
+                    t_1 = setTimeout(rotatePlayer1, 10);
+            else
+                player1.body.velocity.x = 0;
+
+
+        }
+        function rotatePlayer2() {
+            if (player2.body.touching.down) { }
+            time_2 += 0.003;
+
+            player2.rotation = 0.5 * (Math.sin(time_2 * 20) * Math.cos(time_2));
+            if (Math.cos(time_2) >= 0.001)
+                t_2 = setTimeout(rotatePlayer2, 10);
+            else
+                player2.body.velocity.x = 0;
+
+
+        }
+
+        function player1_ground_collision_callback() {
+            if (flag_1) {
+                time_1 = -0.003;
+                clearTimeout(t_1);
+                rotatePlayer1();
+
+                flag_1 = false;
+            }
+        }
+        function player2_ground_collision_callback() {
+            if (flag_2) {
+                time_2 = -0.003;
+                clearTimeout(t_2);
+                rotatePlayer2();
+
+                flag_2 = false;
+            }
+        }
+
+        function preload()
+        {
+            game.load.image('sky', 'sky.png');
+            game.load.image('platform', 'platform.png');
+            game.load.image('ball', 'ball.png');
+            game.load.image('player', 'player.png');
+            game.load.image('goal', 'goal.png');
+            game.load.image('goal1', 'goalflip.png');
+            game.load.image('leg', 'leg.png');
+            game.load.audio('maz', 'الكاميرا فى الملعب HQ.mp3');
+            game.load.audio('med', 'med7at.mp3');
+            game.load.audio('mab', 'mabrok.mp3')
+        }
+        var music;
+        var music_med;
+        var music_mab;
+        function create()
+        {
+
+            game.physics.startSystem(Phaser.Physics.ARCADE);
+            game.add.sprite(0, 0, 'sky').scale.set(1.5,1.5);
+
+            b = game.add.group();
+            b.enableBody = true;
+            ground = b.create(0, game.world.height - 64, 'platform');
+            ground.scale.set(3, 3);
+            ground.body.immovable = false;
+            ground.body.immovable = true;
+            ground.body.allowGravity = false;
+
+            ball = game.add.sprite(400, 300, 'ball');
+            ball.scale.set(0.4, 0.4);
+            game.physics.arcade.enable(ball);
+            ball.body.gravity.y = 300;
+            ball.body.bounce.y = 0.5;
+            
+
+            players = game.add.group();
+            players.enableBody = true;
+            player1 = players.create(200, 5, 'player');
+            player2 = players.create(game.world.width - 200, 5, 'player');
+
+
+
+            player1.scale.set(-0.4, 0.4);
+            player1.body.gravity.y = 980;
+            player2.scale.set(0.4, 0.4);
+            player2.body.gravity.y = 980;
+            //player1.body.
+            player1.anchor.setTo(0.5, 1.0);
+            player2.anchor.setTo(0.5, 1.0);
+            leg2 = game.make.sprite(-7, -110, 'leg');
+            leg2.scale.set(0.35, 0.35);
+            leg2.anchor.setTo(0.5, 0);
+            leg1 = game.make.sprite(-7, -110, 'leg');
+            leg1.scale.set(0.35, 0.35);
+            leg1.anchor.setTo(0.5, 0);
+            player2.addChild(leg2);
+            player1.addChild(leg1);
+
+            goals = game.add.group();
+            goals.enableBody = true;
+            goal1 = goals.create(50, game.world.height - 300, 'goal1');
+            goal2 = goals.create(game.world.width - 160, game.world.height - 300, 'goal');
+
+            goal1.body.customSeparateX = true;
+            goal2.body.customSeparateX = true;
+
+            goal1.body.customSeparateY = true;
+            goal2.body.customSeparateY = true;
+
+
+            goal1.scale.set(0.5, 0.5);
+            goal2.scale.set(0.5, 0.5);
+
+            goal1.body.immovable = true;
+            goal2.body.immovable = true;
+
+            goal1.body.allowGravity = false;
+            goal2.body.allowGravity = false;
+
+            goal1.body.checkCollision.left = false;
+            goal1.body.checkCollision.up = false;
+            goal1.body.checkCollision.down = false;
+
+            goal2.body.checkCollision.right = false;
+            goal2.body.checkCollision.up = false;
+            goal2.body.checkCollision.down = false;
+
+            this.game.time.advancedTiming = true;
+            game.physics.arcade.TILE_BIAS = 500;
+
+            rect1 = game.add.sprite(50, 300, null);
+            game.physics.enable(rect1, Phaser.Physics.ARCADE);
+
+            rect2 = game.add.sprite(50, 300, null);
+            game.physics.enable(rect2, Phaser.Physics.ARCADE);
+
+            rect4 = game.add.sprite(840, 300, null);
+            game.physics.enable(rect4, Phaser.Physics.ARCADE);
+
+            rect5 = game.add.sprite(940, 300, null);
+            game.physics.enable(rect5, Phaser.Physics.ARCADE);
+            
+            
+            goals_groap = game.add.group();
+            goals_groap.enableBody = true;
+            goals_groap.add(rect1);
+            goals_groap.add(rect2);
+            goals_groap.add(rect4);
+            goals_groap.add(rect5);
+
+            rect4.body.setSize(115, 15, 0, 0); // set the size of the rectangle
+            rect5.body.setSize(15, 235, 0, 0); // set the size of the rectangle 
+            rect2.body.setSize(110, 15, 0, 0); // set the size of the rectangle
+            rect1.body.setSize(15, 235, 0, 0); // set the size of the rectangle
+
+            rect1.body.immovable = true;
+            rect2.body.immovable = true;
+            rect4.body.immovable = true;
+            rect5.body.immovable = true;
+            cursors = game.input.keyboard.createCursorKeys();
+            W = game.input.keyboard.addKey(Phaser.Keyboard.W);
+
+            scoretext = game.add.text(game.world.width / 2, 16, '0 : 0', { fontSize: '50px', fill: '#000' });
+            win = game.add.text(game.world.width / 2, game.world.height / 2, '', { fontSize: '100px', fill: 'red' });
+            music = game.add.audio('maz', 1, true);
+
+            music_med = game.add.audio('med');
+            music_mab = game.add.audio('mab');
+            music.play();
+
+        }
+
+        function render() {
+            //game.debug.body(player2);
+           // game.debug.body(ground);
+            //game.debug.body(player1);
+            //game.debug.body(ball);
+            //game.debug.body(player2);
+            //game.debug.body(rect1);
+            //game.debug.body(rect2);
+            //game.debug.body(rect4);
+            //game.debug.body(rect5);
+        }
+        function reload() {
+            
+            ball.position.x = game.world.width/2;
+            ball.position.y = 400;
+            player1.position.x = 200;
+            player1.position.y = 5;
+            player2.position.y = 5;
+            player2.position.x = game.world.width - 200;
+
+            ball.body.velocity.x = 0;
+            ball.body.velocity.y = 0;
+
+            player1.body.velocity.x = 0;
+            player1.body.velocity.y = 0;
+
+            player2.body.velocity.x = 0;
+            player2.body.velocity.y = 0;
+
+            
+
+            flag_1 = true;
+            flag_2 = true;
+            time_1 = -0.003;
+            time_2 = -0.003;
+            clearTimeout(t_1);
+            clearTimeout(t_2);
+
+            player1.rotation = 0;
+            player2.rotation = 0;
+        }
+        var scoretext = 0;
+        function update()
+        {
+            console.log(player1.body.velocity.y);
+            console.log(player1.body.velocity.x);
+            console.log(player2.body.velocity.y);
+            console.log(player2.body.velocity.x);
+            if(ball.position.x < 50 || ball.position.x > game.world.width - 160){
+                alert("out of bounds");
+                reload();
+            }
+            player1.body.collideWorldBounds = true;
+            player2.body.collideWorldBounds = true;
+            ball.body.collideWorldBounds = true;
+
+            game.physics.arcade.collide(player1, b, function () {
+                game.physics.arcade.collide(ball, player1);
+                game.physics.arcade.collide(player2, player1);
+                game.physics.arcade.collide(b, ball);
+                game.physics.arcade.collide(b, player2, player2_ground_collision_callback, null, this);
+                player1_ground_collision_callback();
+                
+
+              /*  game.physics.arcade.collide(player2, b, function () {
+                    if (flag) {
+                        time = -0.003;
+                        clearTimeout(t);
+                        rotatePlayer2();
+
+                        flag = false;
+                    }    */
+
+            }, null, this);
+            game.physics.arcade.collide(player2, b, function () {
+                game.physics.arcade.collide(ball, player2);
+                game.physics.arcade.collide(player2, player1);
+                game.physics.arcade.collide(b, ball);
+                game.physics.arcade.collide(b, player1, player1_ground_collision_callback, null, this);
+                
+                player2_ground_collision_callback();
+                /*  game.physics.arcade.collide(player2, b, function () {
+                      if (flag) {
+                          time = -0.003;
+                          clearTimeout(t);
+                          rotatePlayer2();
+
+                          flag = false;
+                      }    */
+
+            }, null, this);
+
+            game.physics.arcade.collide(ball, b, function () {
+                game.physics.arcade.collide(ball, player1);
+                game.physics.arcade.collide(ball, player2);
+                game.physics.arcade.collide(b, player1, player1_ground_collision_callback, null, this);
+                game.physics.arcade.collide(b, player2, player2_ground_collision_callback, null, this);
+
+            },null,this);
+
+            //game.physics.arcade.overlap(ball, goals, function () {
+            //    setTimeout(function () { ball.body.velocity.x = 0; },1000);
+            //}, null, this);
+            game.physics.arcade.collide(goals_groap, players);
+            game.physics.arcade.collide(goals_groap, ball);
+            game.physics.arcade.collide(ball, goal1, function () {
+                music.pause();
+                music_med.play();
+                setTimeout(function () { music.resume(); }, 3000);
+                score1++;
+                if (score1 == 3) {
+                    sound.play();
+                    game.paused = true;
+                    //alert("Right wins " + score1 + " : " + score2);
+                    win.text = "Right wins";
+                    setTimeout(function () {
+                        win.text = "";
+                        scoretext.text = (score2 + " : " + score1);
+                    },1000);
+                    scoretext.text = (score2 + " : " + score1);
+                    score1 = 0;
+                    score2 = 0;
+                    setTimeout(function () { game.paused = false; reload(); }, 6000);
+                }
+                else{
+                    //alert(score2 + " : " + score1);
+                    scoretext.text = (score2 + " : " + score1);
+                    reload();
+                }
+                
+
+            }, null, this);
+
+            game.physics.arcade.collide(ball, goal2, function () {
+                music.pause();
+                music_med.play();
+                setTimeout(function () { music.resume(); }, 3000);
+                score2++;
+                if (score2 == 3) {
+                    sound.play();
+                    game.paused = true;
+                    win.text = "Left wins";
+                    setTimeout(function () {
+                        win.text = "";
+                        scoretext.text = (score2 + " : " + score1);
+                    }, 1000);
+                    scoretext.text = (score2 + " : " + score1);
+                    score1 = 0;
+                    score2 = 0;
+                    setTimeout(function () { game.paused = false; reload(); }, 6000);
+                }
+                else {
+                    scoretext.text = (score2 + " : " + score1);
+                    reload();
+                }
+
+                
+                
+            }, null, this);
+
+            //game.physics.arcade.collide(ball, leg1);
+            //game.physics.arcade.collide(ball, leg2);
+
+            game.physics.arcade.collide(ball, player1, function (ball, player1)
+            {
+                game.physics.arcade.collide(ball, b);
+                game.physics.arcade.collide(ball, player2);
+                game.physics.arcade.collide(player1, player2);
+               
+                
+                
+
+                game.physics.arcade.collide(player1, b, player1_ground_collision_callback, null, this);
+                game.physics.arcade.collide(player2, b, player2_ground_collision_callback, null, this);
+
+                if (ball.body.touching.up)
+                {
+                    player1.position.x -= 20;
+                }
+                ball.body.velocity.x = 150;
+                ball.body.velocity.y += -250;
+
+            }
+            , null, this);
+            game.physics.arcade.collide(ball, player2, function (ball, player2) {
+                game.physics.arcade.collide(ball, b);
+                game.physics.arcade.collide(ball, player1);
+                game.physics.arcade.collide(player1, player2);
+
+
+
+
+                game.physics.arcade.collide(player1, b, player1_ground_collision_callback, null, this);
+                game.physics.arcade.collide(player2, b, player2_ground_collision_callback, null, this);
+                if (ball.body.touching.up) {
+                    player2.position.x += 20;
+                }
+                ball.body.velocity.x = -150;
+                ball.body.velocity.y += -250;
+
+
+            }
+            , null, this);
+
+            game.physics.arcade.collide(player1, player2);
+
+            if (cursors.up.isDown && player2.body.touching.down) {
+                leg2.angle = 90;
+                setTimeout(function () { leg2.angle =  0; }, 500);
+                player2.body.velocity.y = -500;
+                player2.body.velocity.x = player2.angle * 5;
+                flag_2 = true;
+                t1 = setTimeout(function () { player2.body.velocity.x = 0; }, 1000);
+            }
+            if (W.isDown && player1.body.touching.down) {
+                leg1.angle = 90;
+                setTimeout(function () { leg1.angle = 0; }, 500);
+                player1.body.velocity.y = -500;
+                player1.body.velocity.x = player1.angle * 5;
+                flag_1 = true;
+                t2 = setTimeout(function () { player1.body.velocity.x = 0; }, 1000);
+            }
+
+
+            //if (cursors.up.isDown) {
+            //   // player2.body.velocity.x = player2.angle * 100;
+            //}
+            //if (cursors.right.isDown) {
+            //    player2.body.velocity.x = 20;
+            //}
+            //if (cursors.left.isDown) {
+            //    player2.body.velocity.x = -20;
+            //}
+
+
+        }
+    </script>
+
+</body>
+</html>
